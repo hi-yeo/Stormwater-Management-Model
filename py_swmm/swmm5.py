@@ -6,8 +6,9 @@ from pathlib import Path
 from typing import Optional
 
 from . import project as project_mod
-from . import kinwave
 from . import runoff
+from . import routing
+from . import report as report_mod
 
 
 def swmm_run(inp_path: str, report_path: Optional[str] = None) -> None:
@@ -33,11 +34,11 @@ def swmm_run(inp_path: str, report_path: Optional[str] = None) -> None:
     report_lines = []
     for step in range(project.options.steps):
         runoff.update_subcatchments(project)
-        kinwave.route(project)
+        routing.execute(project)
         report_lines.append(f"Step {step}: flow={project.flow:.3f}\n")
 
     output = "".join(report_lines)
     if report_path:
-        Path(report_path).write_text(output)
+        report_mod.write_report(project, Path(report_path), report_lines)
     else:
         print(output)

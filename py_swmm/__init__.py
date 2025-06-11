@@ -6,5 +6,6 @@ mirrors the basic structure of the original C solver.
 """
 
 from .swmm5 import swmm_run
+from .objects import Node, Link
 
-__all__ = ["swmm_run"]
+__all__ = ["swmm_run", "Node", "Link"]
