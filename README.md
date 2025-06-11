@@ -19,3 +19,13 @@ SWMM is a dynamic hydrology-hydraulic water quality simulation model. It is used
 
 ## Find Out More
 The source code distributed here is identical to the code found at the official [SWMM Website](http://www.epa.gov/water-research/storm-water-management-model-swmm).
+
+## Python Version
+
+This repository includes a minimal Python translation of the solver in
+`py_swmm/`. The port only supports kinematic wave routing and omits
+features such as snowmelt and water quality. To run a small example:
+
+```bash
+python -m py_swmm.example
+```
