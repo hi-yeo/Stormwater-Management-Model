@@ -183,11 +183,13 @@ int  subcatch_readParams(int j, char* tok[], int ntoks)
     Subcatch[j].infilPattern  = -1;
 
     // --- create the snow pack object if it hasn't already been created
+#ifndef LITE_NO_SNOW
     if ( x[8] >= 0 )
     {
         if ( !snow_createSnowpack(j, (int)x[8]) )
             return error_setInpError(ERR_MEMORY, "");
     }
+#endif
     return 0;
 }
 
@@ -438,7 +440,9 @@ void  subcatch_initState(int j)
     // --- initialize state of infiltration, groundwater, & snow pack objects
     if ( Subcatch[j].infil == j )  infil_initState(j);
     if ( Subcatch[j].groundwater ) gwater_initState(j);
+#ifndef LITE_NO_SNOW
     if ( Subcatch[j].snowpack )    snow_initSnowpack(j);
+#endif
 
     // --- initialize state of sub-areas
     for (i = IMPERV0; i <= PERV; i++)
@@ -780,14 +784,14 @@ void getNetPrecip(int j, double* netPrecip, double tStep)
     // --- determine net precipitation input (netPrecip) to each sub-area
 
     // --- if subcatch has a snowpack, then base netPrecip on possible snow melt
+#ifndef LITE_NO_SNOW
     if ( Subcatch[j].snowpack && !IgnoreSnowmelt )
     {
-        Subcatch[j].newSnowDepth = 
+        Subcatch[j].newSnowDepth =
             snow_getSnowMelt(j, rainfall, snowfall, tStep, netPrecip);
     }
-
-    // --- otherwise netPrecip is just sum of rainfall & snowfall
     else
+#endif
     {
         for (i=IMPERV0; i<=PERV; i++) netPrecip[i] = rainfall + snowfall;
     }

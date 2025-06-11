@@ -126,7 +126,6 @@ int massbal_open()
     for (j = 0; j < Nobjects[SUBCATCH]; j++)
     {
         RunoffTotals.initStorage += subcatch_getStorage(j);
-        RunoffTotals.initSnowCover += snow_getSnowCover(j);
         TotalArea += Subcatch[j].area;
     }
 
@@ -710,11 +709,10 @@ double massbal_getRunoffError()
     for (j = 0; j < Nobjects[SUBCATCH]; j++)
     {
         RunoffTotals.finalStorage += subcatch_getStorage(j);
-        RunoffTotals.finalSnowCover += snow_getSnowCover(j);
     }
 
-    // --- get snow removed from system
-    RunoffTotals.snowRemoved = Snow.removed;
+    // --- snowmelt not modeled
+    RunoffTotals.snowRemoved = 0.0;
 
     // --- compute % difference between total inflow and outflow
     totalInflow  = RunoffTotals.rainfall +

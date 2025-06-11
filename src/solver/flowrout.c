@@ -54,12 +54,10 @@ static const double STOPTOL = 0.005;   // storage updating stopping tolerance
 //-----------------------------------------------------------------------------
 //  Local functions
 //-----------------------------------------------------------------------------
-static void   initLinkDepths(void);
-static void   initNodeDepths(void);
+
 static void   initNodes(void);
 static void   initLinks(int routingModel);
-static void   validateTreeLayout(void);      
-static void   validateGeneralLayout(void);
+static void   validateTreeLayout(void);
 static void   updateStorageState(int i, int j, int links[], double dt);
 static double getStorageOutflow(int node, int j, int links[], double dt);
 static double getLinkInflow(int link, double dt);
@@ -79,23 +77,8 @@ void flowrout_init(int routingModel)
 //  Purpose: initializes flow routing system.
 //
 {
-    // --- initialize for dynamic wave routing 
-    if ( routingModel == DW )
-    {
-        // --- check for valid conveyance network layout
-        validateGeneralLayout();
-        dynwave_init();
-
-        // --- initialize node & link depths if not using a hotstart file
-        if ( Fhotstart1.mode == NO_FILE )
-        {
-            initNodeDepths();
-            initLinkDepths();
-        }
-    }
-
     // --- validate network layout for kinematic wave routing
-    else validateTreeLayout();
+    validateTreeLayout();
 
     // --- initialize node & link volumes
     initNodes();
@@ -111,7 +94,7 @@ void  flowrout_close(int routingModel)
 //  Purpose: closes down routing method used.
 //
 {
-    if ( routingModel == DW ) dynwave_close();
+    (void)routingModel;
 }
 
 //=============================================================================
@@ -124,10 +107,7 @@ double flowrout_getRoutingStep(int routingModel, double fixedStep)
 //  Purpose: finds variable time step for dynamic wave routing.
 //
 {
-    if ( routingModel == DW )
-    {
-        return dynwave_getRoutingStep(fixedStep);
-    }
+    (void)routingModel;
     return fixedStep;
 }
 
@@ -161,13 +141,7 @@ int flowrout_execute(int links[], int routingModel, double tStep)
         }
     }
 
-    // --- execute dynamic wave routing if called for
-    if ( routingModel == DW )
-    {
-        return dynwave_execute(tStep);
-    }
-
-    // --- otherwise examine each link, moving from upstream to downstream
+    // --- examine each link, moving from upstream to downstream
     steps = 0.0;
     for (i = 0; i < Nobjects[LINK]; i++)
     {
@@ -271,154 +245,6 @@ void validateTreeLayout()
 
 //=============================================================================
 
-void validateGeneralLayout()
-//
-//  Input:   none
-//  Output:  nonw
-//  Purpose: validates general conveyance system layout.
-//
-{
-    int i, j;
-    int outletCount = 0;
-
-    // --- use node inflow attribute to count inflow connections
-    for ( i=0; i<Nobjects[NODE]; i++ ) Node[i].inflow = 0.0;
-
-    // --- examine each link
-    for ( j = 0; j < Nobjects[LINK]; j++ )
-    {
-        // --- update inflow link count of downstream node
-        i = Link[j].node1;
-        if ( Node[i].type != OUTFALL ) i = Link[j].node2;
-        Node[i].inflow += 1.0;
-
-        // --- if link is dummy link or ideal pump then it must
-        //     be the only link exiting the upstream node 
-        if ( (Link[j].type == CONDUIT && Link[j].xsect.type == DUMMY) ||
-             (Link[j].type == PUMP &&
-              Pump[Link[j].subIndex].type == IDEAL_PUMP) )
-        {
-            i = Link[j].node1;
-            if ( Link[j].direction < 0 ) i = Link[j].node2;
-            if ( Node[i].degree > 1 )
-            {
-                report_writeErrorMsg(ERR_DUMMY_LINK, Node[i].ID);
-            }
-        }
-    }
-
-    // --- check each node to see if it qualifies as an outlet node
-    //     (meaning that degree = 0)
-    for ( i = 0; i < Nobjects[NODE]; i++ )
-    {
-        // --- if node is of type Outfall, check that it has only 1
-        //     connecting link (which can either be an outflow or inflow link)
-        if ( Node[i].type == OUTFALL )
-        {
-            if ( Node[i].degree + (int)Node[i].inflow > 1 )
-            {
-                report_writeErrorMsg(ERR_OUTFALL, Node[i].ID);
-            }
-            else outletCount++;
-        }
-    }
-    if ( outletCount == 0 ) report_writeErrorMsg(ERR_NO_OUTLETS, "");
-
-    // --- reset node inflows back to zero
-    for ( i = 0; i < Nobjects[NODE]; i++ )
-    {
-        if ( Node[i].inflow == 0.0 ) Node[i].degree = -Node[i].degree;
-        Node[i].inflow = 0.0;
-    }
-}
-
-//=============================================================================
-
-void initNodeDepths(void)
-//
-//  Input:   none
-//  Output:  none
-//  Purpose: sets initial depth at nodes for Dynamic Wave flow routing.
-//
-{
-    int   i;                           // link or node index
-    int   n;                           // node index
-    double y;                          // node water depth (ft)
-
-    // --- use Node[].inflow as a temporary accumulator for depth in 
-    //     connecting links and Node[].outflow as a temporary counter
-    //     for the number of connecting links
-    for (i = 0; i < Nobjects[NODE]; i++)
-    {
-        Node[i].inflow  = 0.0;
-        Node[i].outflow = 0.0;
-    }
-
-    // --- total up flow depths in all connecting links into nodes
-    for (i = 0; i < Nobjects[LINK]; i++)
-    {
-        if ( Link[i].newDepth > FUDGE ) y = Link[i].newDepth + Link[i].offset1;
-        else y = 0.0;
-        n = Link[i].node1;
-        Node[n].inflow += y;
-        Node[n].outflow += 1.0;
-        n = Link[i].node2;
-        Node[n].inflow += y;
-        Node[n].outflow += 1.0;
-    }
-
-    // --- if no user-supplied depth then set initial depth at non-storage/
-    //     non-outfall nodes to average of depths in connecting links
-    for ( i = 0; i < Nobjects[NODE]; i++ )
-    {
-        if ( Node[i].type == OUTFALL ) continue;
-        if ( Node[i].type == STORAGE ) continue;
-        if ( Node[i].initDepth > 0.0 ) continue;
-        if ( Node[i].outflow > 0.0 )
-        {
-            Node[i].newDepth = Node[i].inflow / Node[i].outflow;
-        }
-    }
-
-    // --- compute initial depths at all outfall nodes
-    for ( i = 0; i < Nobjects[LINK]; i++ ) link_setOutfallDepth(i);
-}
-
-//=============================================================================
-         
-void initLinkDepths()
-//
-//  Input:   none
-//  Output:  none
-//  Purpose: sets initial flow depths in conduits under Dyn. Wave routing.
-//
-{
-    int    i;                          // link index
-    double y, y1, y2;                  // depths (ft)
-
-    // --- examine each link
-    for (i = 0; i < Nobjects[LINK]; i++)
-    {
-        // --- examine each conduit
-        if ( Link[i].type == CONDUIT )
-        {
-            // --- skip conduits with user-assigned initial flows
-            //     (their depths have already been set to normal depth)
-            if ( Link[i].q0 != 0.0 ) continue;
-
-            // --- set depth to average of depths at end nodes
-            y1 = Node[Link[i].node1].newDepth - Link[i].offset1;
-            y1 = MAX(y1, 0.0);
-            y1 = MIN(y1, Link[i].xsect.yFull);
-            y2 = Node[Link[i].node2].newDepth - Link[i].offset2;
-            y2 = MAX(y2, 0.0);
-            y2 = MIN(y2, Link[i].xsect.yFull);
-            y = 0.5 * (y1 + y2);
-            y = MAX(y, FUDGE);
-            Link[i].newDepth = y;
-        }
-    }
-}
 
 //=============================================================================
 
