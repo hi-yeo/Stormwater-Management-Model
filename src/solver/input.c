@@ -361,15 +361,19 @@ int  addObject(int objType, char* id)
         break;
 
       case s_POLLUTANT:
-        if ( !project_addObject(POLLUT, id, Nobjects[POLLUT]) ) 
+#ifndef LITE_NO_QUALITY
+        if ( !project_addObject(POLLUT, id, Nobjects[POLLUT]) )
             errcode = error_setInpError(ERR_DUP_NAME, id);
         Nobjects[POLLUT]++;
+#endif
         break;
 
       case s_LANDUSE:
-        if ( !project_addObject(LANDUSE, id, Nobjects[LANDUSE]) ) 
+#ifndef LITE_NO_QUALITY
+        if ( !project_addObject(LANDUSE, id, Nobjects[LANDUSE]) )
             errcode = error_setInpError(ERR_DUP_NAME, id);
         Nobjects[LANDUSE]++;
+#endif
         break;
 
       case s_PATTERN:
@@ -554,25 +558,45 @@ int  parseLine(int sect, char *line)
         return link_readLossParams(Tok, Ntokens);
 
       case s_POLLUTANT:
+#ifndef LITE_NO_QUALITY
         j = Mobjects[POLLUT];
         err = landuse_readPollutParams(j, Tok, Ntokens);
         Mobjects[POLLUT]++;
         return err;
+#else
+        return 0;
+#endif
 
       case s_LANDUSE:
+#ifndef LITE_NO_QUALITY
         j = Mobjects[LANDUSE];
         err = landuse_readParams(j, Tok, Ntokens);
         Mobjects[LANDUSE]++;
         return err;
+#else
+        return 0;
+#endif
 
       case s_BUILDUP:
+#ifndef LITE_NO_QUALITY
         return landuse_readBuildupParams(Tok, Ntokens);
+#else
+        return 0;
+#endif
 
       case s_WASHOFF:
+#ifndef LITE_NO_QUALITY
         return landuse_readWashoffParams(Tok, Ntokens);
+#else
+        return 0;
+#endif
 
       case s_COVERAGE:
+#ifndef LITE_NO_QUALITY
         return subcatch_readLanduseParams(Tok, Ntokens);
+#else
+        return 0;
+#endif
 
       case s_INFLOW:
         return inflow_readExtInflow(Tok, Ntokens);

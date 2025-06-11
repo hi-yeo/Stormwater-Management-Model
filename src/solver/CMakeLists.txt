@@ -32,6 +32,10 @@ file(GLOB
         RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *.c *.h
 )
 
+# Remove unused modules when building the simplified solver
+list(REMOVE_ITEM SWMM_SOURCES dynwave.c dwflow.c snow.c qualrout.c treatmnt.c landuse.c surfqual.c)
+list(APPEND SWMM_SOURCES lite_stubs.c)
+
 if(BUILD_DEF)
     # Build library with def file interface for backward compatibility
     set_source_files_properties(${PROJECT_SOURCE_DIR}/bindings/swmm5.def
@@ -61,6 +65,8 @@ target_compile_options(swmm5
             $<$<CONFIG:Release>:/Zi>
         >
 )
+
+target_compile_definitions(swmm5 PUBLIC LITE_KINEMATIC_ONLY LITE_NO_SNOW LITE_NO_QUALITY)
 
 target_link_options(swmm5
     PUBLIC
