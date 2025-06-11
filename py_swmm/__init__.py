@@ -1,11 +1,8 @@
-"""Minimal Python translation of the simplified SWMM solver.
+"""Minimal Python translation of the simplified SWMM solver."""
 
-This package provides a limited, kinematic-wave only version of SWMM
-implemented in pure Python. It is not a feature complete port but
-mirrors the basic structure of the original C solver.
-"""
+from __future__ import annotations
 
 from .swmm5 import swmm_run
-from .objects import Node, Link
+from .objects import Node, Link, Subcatch, RainGage
 
-__all__ = ["swmm_run", "Node", "Link"]
+__all__ = ["swmm_run", "Node", "Link", "Subcatch", "RainGage"]

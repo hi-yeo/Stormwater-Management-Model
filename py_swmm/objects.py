@@ -1,17 +1,10 @@
+"""Aggregates common solver objects as in objects.h."""
+
 from __future__ import annotations
 
-from dataclasses import dataclass
+from .node import Node
+from .link import Link
+from .subcatch import Subcatch
+from .gage import RainGage
 
-
-@dataclass
-class Node:
-    name: str
-    depth: float = 0.0
-
-
-@dataclass
-class Link:
-    name: str
-    from_node: Node
-    to_node: Node
-    flow: float = 0.0
+__all__ = ["Node", "Link", "Subcatch", "RainGage"]

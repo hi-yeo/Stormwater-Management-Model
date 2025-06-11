@@ -3,11 +3,10 @@
 from __future__ import annotations
 
 from . import project as project_mod
+from . import subcatch as subcatch_mod
 
 
 def update_subcatchments(project: project_mod.Project) -> None:
-    """Dummy runoff calculation.
-
-    Increments project flow slightly to emulate runoff generation.
-    """
-    project.flow += 0.5
+    """Update runoff for all subcatchments."""
+    for sc in project.subcatchments:
+        project.flow += subcatch_mod.generate_runoff(sc)

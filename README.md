@@ -23,9 +23,10 @@ The source code distributed here is identical to the code found at the official 
 ## Python Version
 
 This repository includes a Python rewrite of the simplified solver in
-`py_swmm/`. Each major C module now has a lightweight Python counterpart.
-Only kinematic wave routing is implemented and features such as snowmelt
-and water quality remain omitted. To run a small example:
+`py_swmm/`. Each remaining C source file has a small Python module with the
+same name so it is easy to see a one-to-one correspondence between the
+languages. Only kinematic wave routing is implemented and features such as
+snowmelt and water quality remain omitted. To run a small example:
 
 ```bash
 python -m py_swmm.example
