@@ -843,6 +843,9 @@ void setDefaults()
    FlowUnits       = CFS;              // CFS flow units
    InfilModel      = HORTON;           // Horton infiltration method
    RouteModel      = DW;               // Dynamic wave flow routing method
+#ifdef LITE_KINEMATIC_ONLY
+   RouteModel      = KW;               // Force kinematic wave routing
+#endif
    SurchargeMethod = EXTRAN;           // Use EXTRAN method for surcharging
    CrownCutoff     = 0.96;             // Fractional pipe crown cutoff 
    AllowPonding    = FALSE;            // No ponding at nodes
@@ -857,10 +860,16 @@ void setDefaults()
    SkipSteadyState = FALSE;            // Do flow routing in steady state periods 
    IgnoreRainfall  = FALSE;            // Analyze rainfall/runoff
    IgnoreRDII      = FALSE;            // Analyze RDII
-   IgnoreSnowmelt  = FALSE;            // Analyze snowmelt 
+   IgnoreSnowmelt  = FALSE;            // Analyze snowmelt
+#ifdef LITE_NO_SNOW
+   IgnoreSnowmelt  = TRUE;
+#endif
    IgnoreGwater    = FALSE;            // Analyze groundwater 
    IgnoreRouting   = FALSE;            // Analyze flow routing
    IgnoreQuality   = FALSE;            // Analyze water quality
+#ifdef LITE_NO_QUALITY
+   IgnoreQuality   = TRUE;
+#endif
    WetStep         = 300;              // Runoff wet time step (secs)
    DryStep         = 3600;             // Runoff dry time step (secs)
    RuleStep        = 0;                // Rules evaluated at each routing step

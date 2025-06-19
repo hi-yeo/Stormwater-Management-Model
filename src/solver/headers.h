@@ -11,6 +11,7 @@
 //   DO NOT CHANGE THE ORDER OF THE #INCLUDE STATEMENTS
 //-----------------------------------------------------------------------------
 #include "macros.h"
+#include "lite_config.h"
 #include "objects.h"
 #define  EXTERN extern
 #include "globals.h"

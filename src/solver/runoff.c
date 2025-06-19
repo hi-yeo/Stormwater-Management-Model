@@ -247,7 +247,9 @@ void runoff_execute()
     {
         if ( Subcatch[j].area == 0.0 ) continue;
         subcatch_getRunon(j);
+#ifndef LITE_NO_SNOW
         if ( !IgnoreSnowmelt ) snow_plowSnow(j, runoffStep);
+#endif
     }
     
     // --- determine runoff and pollutant buildup/washoff in each subcatchment

@@ -97,8 +97,7 @@ int routing_open()
 //  Purpose: initializes the routing analyzer.
 //
 {
-    // --- open treatment system
-    if ( !treatmnt_open() ) return ErrorCode;
+    // --- treatment system disabled
 
     // --- topologically sort the links
     SortedLinks = NULL;
@@ -119,7 +118,6 @@ int routing_open()
 
     // --- initialize flow and quality routing systems
     flowrout_init(RouteModel);
-    if ( Fhotstart1.mode == NO_FILE ) qualrout_init();
 
     // --- initialize routing events
     if ( NumEvents > 0 ) sortEvents();
@@ -143,7 +141,6 @@ void routing_close(int routingModel)
 
     // --- free allocated memory
     flowrout_close(routingModel);
-    treatmnt_close();
     FREE(SortedLinks);
 }
 
@@ -241,16 +238,10 @@ void routing_execute(int routingModel, double routingStep)
         if (inSteadyState == FALSE)
             trialsCount = routeFlow(routingModel, routingStep);
 
-        // --- route water quality constituents
-        if (Nobjects[POLLUT] > 0 && !IgnoreQuality)
-        {
-            inlet_adjustQualInflows();
-            qualrout_execute(routingStep);
-        }
+
 
         // --- update mass balance totals for flows leaving the system
         removeSystemOutflows(routingStep);
-        inlet_adjustQualOutflows();
 
         // --- update time step & flow routing statistics
         if (Nobjects[LINK] > 0)
@@ -313,12 +304,7 @@ void  initSystemInflows()
 {
     int j;
 
-    // --- replace old water quality state with new state
-    if ( Nobjects[POLLUT] > 0 )
-    {
-        for (j=0; j<Nobjects[NODE]; j++) node_setOldQualState(j);
-        for (j=0; j<Nobjects[LINK]; j++) link_setOldQualState(j);
-    }
+
 
     // --- set infiltration factor for storage unit seepage
     //     (-1 argument indicates global factor is used)
@@ -373,9 +359,7 @@ void  addSystemInflows(DateTime currentDate, double routingStep)
     addRdiiInflows(currentDate);
     addIfaceInflows(currentDate);
 
-    // --- initialize node inflow for quality routing
-    for (j = 0; j < Nobjects[NODE]; j++)
-        Node[j].qualInflow = MAX(0.0, Node[j].newLatFlow);
+
 }
 
 //=============================================================================
